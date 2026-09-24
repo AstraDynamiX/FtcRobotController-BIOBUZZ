@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.samples;
+package org.firstinspires.ftc.teamcode.PedroSamples;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
@@ -14,8 +14,9 @@ import com.seattlesolvers.solverslib.util.TelemetryData;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous
-public class PedroAutoSample extends CommandOpMode {
+@Autonomous(group = "zPedroSamples")
+public class PedroAutoSample extends CommandOpMode
+{
     private Follower follower;
     TelemetryData telemetryData = new TelemetryData(telemetry);
 

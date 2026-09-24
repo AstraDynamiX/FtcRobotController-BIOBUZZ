@@ -36,11 +36,11 @@ class AutoStep
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "Autonomous")
 public class Autonomous extends OpMode
 {
-    private final double SHOOT_DELAY = 900; // Wait for turret to adjust
-    private final double SHOOT_TIME = 2600; // Wait for shooting before starting path
+    private final double SHOOT_DELAY = 3000; // Wait for flywheel rev
+    private final double SHOOT_TIME = 3000; // Wait for shooting before starting path
     private final double INTAKE_SPEED = 0.5;
 
-    private final double FIELD_LENGTH = 144; // in pedroPathing coordinates
+    private final double FIELD_LENGTH = 142; // in pedroPathing coordinates
 
     LaunchBoard LaunchBoard = new LaunchBoard();
 
@@ -50,26 +50,14 @@ public class Autonomous extends OpMode
     ElapsedTime timer = new ElapsedTime();
 
 
-    //Blue close
-    private final Pose startClose = new Pose(25.083, 131.242, Math.toRadians(143));
-    private final Pose shootClose = new Pose(54, 90, Math.toRadians(135));
-    private final Pose intake1StartClose = new Pose(52.297, 87.270, Math.toRadians(180));
-    private final Pose intake1EndClose = new Pose(19.299, 87.270, Math.toRadians(180));
-    private final Pose intake2StartClose = new Pose(50.081, 63.703, Math.toRadians(180));
-    private final Pose intake2EndClose = new Pose(17.702, 63.594, Math.toRadians(180));
-    private final Pose intake3StartClose = new Pose(55.865, 39.243, Math.toRadians(180));
-    private final Pose intake3EndClose = new Pose(20.541, 39.243, Math.toRadians(180));
-    private final Pose endClose = new Pose(24.919, 79.978, Math.toRadians(-135));
+    //Red bottom
+    private final Pose startBottom = new Pose(56, 9, Math.toRadians(90));
+    private final Pose leftWallBottom = new Pose(24, 36, Math.toRadians(90));
+    private final Pose loadingBottom = new Pose(11, 104, Math.toRadians(90));
 
-    //Blue far
-    private final Pose startFar = new Pose(56,10, Math.toRadians(90));
-    private final Pose shootFar = new Pose(57.7,13.5, Math.toRadians(110));
-    private final Pose intake1StartFar = new Pose(55.865, 37.243, Math.toRadians(180));
-    private final Pose intake1EndFar = new Pose(20.541, 37.243, Math.toRadians(180));
-    private final Pose intake2StartFar = new Pose(20.919, 44.838, Math.toRadians(-95));
-    private final Pose intake2EndFar = new Pose(18, 17.459, Math.toRadians(-95));
-    private final Pose endFar = new Pose(38.108, 26.297, Math.toRadians(-150));
-
+    //Red top
+    private final Pose loadingTop = new Pose(loadingBottom.getX(), loadingBottom.getY() ,Math.toRadians(270));
+    private final Pose goalTop = new Pose(56, 108, Math.toRadians(270));
 
     private Pose currentPose;
 
@@ -81,9 +69,8 @@ public class Autonomous extends OpMode
 
     // Trajectory selection booleans
     boolean redAlliance = false;
-    boolean closeTrajectory = true;
+    boolean bottomTrajectory = true;
     boolean confirmed = false;
-    boolean turretAdjustment = false;
 
 
     @Override
@@ -110,7 +97,7 @@ public class Autonomous extends OpMode
             {redAlliance = !redAlliance;}
 
             if (gamepad1.xWasPressed())
-            {closeTrajectory = !closeTrajectory;}
+            {bottomTrajectory = !bottomTrajectory;}
 
             if (gamepad1.aWasPressed())
             {
@@ -122,50 +109,32 @@ public class Autonomous extends OpMode
         }
 
         telemetry.addData("ALLIANCE", (redAlliance) ? "red" : "blue");
-        telemetry.addData("TRAJECTORY", (closeTrajectory) ? "close" : "far");
+        telemetry.addData("TRAJECTORY", (bottomTrajectory) ? "bottom" : "top");
 
         telemetry.addData("","");
-        telemetry.addData("POSE", startFar.getX());
-        telemetry.addData("POSE", shootFar.getX());
-        telemetry.addData("POSE", MirrorPose(startFar, true).getX());
-        telemetry.addData("POSE", MirrorPose(shootFar, true).getX());
     }
 
     @Override
     public void start()
     {
         opModeTimer.reset();
-        LaunchBoard.start();
+        //LaunchBoard.start();
 
-        if (closeTrajectory)
+        if (bottomTrajectory)
         {
-            StartRoutine(startClose);
+            StartRoutine(startBottom);
 
-            AddRoutineStep(shootClose, () -> LaunchBoard.Rev(), 1,  0, 0);
-            AddRoutineStep(intake1StartClose, () -> LaunchBoard.Shoot(), 1, SHOOT_TIME, SHOOT_DELAY);
-            AddRoutineStep(intake1EndClose, () -> LaunchBoard.Intake(), INTAKE_SPEED, 0, 0);
-            AddRoutineStep(shootClose, () -> LaunchBoard.Rev(), 1, 0, 0);
-            AddRoutineStep(intake2StartClose, () -> LaunchBoard.Shoot(), 1, SHOOT_TIME, SHOOT_DELAY);
-            AddRoutineStep(intake2EndClose, () -> LaunchBoard.Intake(), INTAKE_SPEED, 0, 0);
-            AddRoutineStep(shootClose, () -> LaunchBoard.Rev(), 1, 0, 0);
-            AddRoutineStep(startClose, () -> LaunchBoard.Shoot(), 1, SHOOT_TIME, SHOOT_DELAY);
-            /*AddRoutineStep(intake3StartClose, () -> LaunchBoard.Shoot(), 1, SHOOT_TIME, SHOOT_DELAY);
-            AddRoutineStep( intake3EndClose, () -> LaunchBoard.Intake(), INTAKE_SPEED, 0, 0);
-            AddRoutineStep(shootClose, () -> LaunchBoard.Rev(), 1, 0, 0);
-            AddRoutineStep(endClose, () -> LaunchBoard.Shoot(), 1, SHOOT_TIME, SHOOT_DELAY);*/
+            AddRoutineStep(startBottom, () -> LaunchBoard.Rev(), 1,  SHOOT_DELAY, 0);
+            AddRoutineStep(leftWallBottom, () -> LaunchBoard.Shoot(), 1, SHOOT_TIME, 0);
+            AddRoutineStep(loadingBottom, () -> LaunchBoard.Idle(), 1, 0 , 0);
         }
         else
         {
-            StartRoutine(startFar);
+            StartRoutine(MirrorPose(startBottom, false));
 
-            AddRoutineStep(shootFar, () -> LaunchBoard.Idle(), 1, 0, 0);
-            /*AddRoutineStep(intake1StartFar, () -> LaunchBoard.Shoot(), 1, SHOOT_TIME, SHOOT_DELAY);
-            AddRoutineStep(intake1EndFar, () -> LaunchBoard.Intake(), INTAKE_SPEED, 0, 0);
-            AddRoutineStep(shootFar, () -> LaunchBoard.Rev(), 1, 0, 0);
-            AddRoutineStep(intake2StartFar, () -> LaunchBoard.Shoot(), 1, SHOOT_TIME, SHOOT_DELAY);
-            AddRoutineStep(intake2EndFar, () -> LaunchBoard.Intake(), INTAKE_SPEED, 0, 0);
-            AddRoutineStep(shootFar, () -> LaunchBoard.Rev(), 0.8, 0, 0);
-            AddRoutineStep(endFar, () -> LaunchBoard.Shoot(), 1, SHOOT_TIME, SHOOT_DELAY);*/
+            AddRoutineStep(MirrorPose(startBottom, false), () -> LaunchBoard.Rev(), 1, SHOOT_DELAY, 0);
+            AddRoutineStep(goalTop, () -> LaunchBoard.Shoot(), 1, SHOOT_TIME, 0);
+            AddRoutineStep(loadingTop, () -> LaunchBoard.Idle(), 1, 0, 0);
         }
     }
 
@@ -174,10 +143,13 @@ public class Autonomous extends OpMode
     {
         follower.update();
         RunScheduler();
-        LaunchBoard.UpdateLaunch(true, 1);
+        LaunchBoard.UpdateLaunch(false, 475);
 
-        if (turretAdjustment) LaunchBoard.TurretMovement();
-        else LaunchBoard.TurretLockPosition(0);
+        telemetry.addData("NEXT TARGET:", "%2.f, %2.f, %2.f",
+                follower.getPose().getX(),
+                follower.getPose().getY(),
+                follower.getPose().getHeading()
+        );
 
         if (opModeTimer.seconds() > 30) {requestOpModeStop();}
     }
@@ -185,7 +157,7 @@ public class Autonomous extends OpMode
     @Override
     public void stop()
     {
-        LaunchBoard.stop();
+        //LaunchBoard.stop();
     }
 
 
@@ -221,9 +193,9 @@ public class Autonomous extends OpMode
     }
 
 
-    private Pose AlliancePose(Pose bluePose)
+    private Pose AlliancePose(Pose redPose)
     {
-        return (redAlliance) ? (MirrorPose(bluePose, true)) : (bluePose);
+        return (redAlliance) ? (redPose) : (MirrorPose(redPose, true));
     }
 
     /** "Routine" means path chain that follows this structure:
@@ -264,7 +236,7 @@ public class Autonomous extends OpMode
         {
             pathStarted = true;
             follower.setMaxPower(step.speed);
-            follower.followPath(step.path, true);
+            follower.followPath(step.path, false);
         }
 
         //Run action after specified time

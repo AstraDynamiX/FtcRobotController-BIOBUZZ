@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.hardware.motors.Motor;
 import com.seattlesolvers.solverslib.hardware.motors.MotorEx;
+import com.seattlesolvers.solverslib.hardware.motors.MotorGroup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,15 +26,16 @@ public class LaunchBoard
     public static double FLYWHEEL_MULTIPLIER = 1.17;
 
 
-    LocalizationBoard LocalizationBoard = new LocalizationBoard();
+    //LocalizationBoard LocalizationBoard = new LocalizationBoard();
     ElapsedTime stopperTimer = new ElapsedTime();
 
-    private DcMotor intake;
+    private MotorEx intake;
+    private MotorEx transfer;
     private MotorEx leftFlywheel;
-    private MotorEx rightFlywheel;
+    //private MotorEx rightFlywheel;
 
-    private Servo leftLed;
-    private Servo rightLed;
+    //private Servo leftLed;
+    //private Servo rightLed;
 
     private LaunchState launchState = LaunchState.IDLE;
 
@@ -41,22 +43,34 @@ public class LaunchBoard
     private double launchAngle = 0;
     private double smallestLaunchSpeed = 999999;
     private double flywheelInput = 0;
-    private double manualAdjusterAngle = 0.35;
-    private double adjusterAngle = 0;
 
 
     public void init(HardwareMap hwMap, boolean redAlliance)
     {
-        LocalizationBoard.init(hwMap, (redAlliance) ? 7 : 8);
-        //Initialize motors and servos
-        intake = hwMap.get(DcMotor.class, "intake");
-        leftFlywheel = initFlywheelMotor(hwMap, true, "leftFlywheel");
-        rightFlywheel = initFlywheelMotor(hwMap, false, "rightFlywheel");
+        //LocalizationBoard.init(hwMap, (redAlliance) ? 7 : 8);
 
-        leftLed = hwMap.get(Servo.class, "leftLed");
-        rightLed = hwMap.get(Servo.class, "rightLed");
+        intake = initIntakeMotor(hwMap, false,"intake");
+        transfer = initIntakeMotor(hwMap, true,"transfer");
+
+        intake.setRunMode(Motor.RunMode.RawPower);
+
+        leftFlywheel = initFlywheelMotor(hwMap, true, "flywheel");
+        //rightFlywheel = initFlywheelMotor(hwMap, false, "rightFlywheel");
+
+        /*leftLed = hwMap.get(Servo.class, "leftLed");
+        rightLed = hwMap.get(Servo.class, "rightLed");*/
 
         Idle();
+    }
+
+
+    private MotorEx initIntakeMotor(HardwareMap hwMap, boolean inverted, String name)
+    {
+        MotorEx motor;
+        motor = new MotorEx(hwMap, name, Motor.GoBILDA.RPM_1150);
+        motor.setInverted(inverted);
+        motor.setCachingTolerance(0.01);
+        return motor;
     }
 
     private MotorEx initFlywheelMotor(HardwareMap hwMap, boolean inverted, String name)
@@ -70,8 +84,8 @@ public class LaunchBoard
         return motor;
     }
 
-    public void start() {LocalizationBoard.start();}
-    public void stop() {LocalizationBoard.stop();}
+    //public void start() {LocalizationBoard.start();}
+    //public void stop() {LocalizationBoard.stop();}
 
 
     private enum FlywheelMode
@@ -91,7 +105,7 @@ public class LaunchBoard
         }
 
         leftFlywheel.setVelocity(flywheelInput);
-        rightFlywheel.setVelocity(flywheelInput);
+        //rightFlywheel.setVelocity(flywheelInput);
 
         switch (mode)
         {
@@ -99,13 +113,12 @@ public class LaunchBoard
             case MANUAL:
 
                 leftFlywheel.setVeloCoefficients(FLYWHEEL_KP, FLYWHEEL_KI, 0);
-                rightFlywheel.setVeloCoefficients(FLYWHEEL_KP, FLYWHEEL_KI, 0);
+                //rightFlywheel.setVeloCoefficients(FLYWHEEL_KP, FLYWHEEL_KI, 0);
 
                 smallestLaunchSpeed = manualFlywheelSpeed;
-                adjusterAngle = manualAdjusterAngle;
 
                 // Turn on LED's when flywheel is near the needed speed
-                double flywheelGradient = leftFlywheel.getVelocity() / flywheelInput;
+                /*double flywheelGradient = leftFlywheel.getVelocity() / flywheelInput;
                 if (flywheelGradient < 1.05 && flywheelGradient > 0.95)
                 {
                     leftLed.setPosition(0.7);
@@ -115,7 +128,7 @@ public class LaunchBoard
                 {
                     leftLed.setPosition(0);
                     rightLed.setPosition(0);
-                }
+                }*/
 
                 break;
 
@@ -125,11 +138,11 @@ public class LaunchBoard
                 // Remove PID when slowing down because slowing down quickly is unnecessary
                 // and it drains battery, since motors brake instead of floating
                 leftFlywheel.setVeloCoefficients(0, 0, 0);
-                rightFlywheel.setVeloCoefficients(0, 0, 0);
+                //rightFlywheel.setVeloCoefficients(0, 0, 0);
                 smallestLaunchSpeed = 0;
 
-                leftLed.setPosition(0);
-                rightLed.setPosition(0);
+                //leftLed.setPosition(0);
+                //rightLed.setPosition(0);
                 break;
         }
     }
@@ -140,7 +153,7 @@ public class LaunchBoard
     public double getDistance() {return distance;}
     public double getLaunchAngle() {return Math.toDegrees(launchAngle);}
     public double getFlywheelInput() {return flywheelInput;}
-    public double getFlywheelSpeed() {return rightFlywheel.getVelocity();}
+    public double getFlywheelSpeed() {return leftFlywheel.getVelocity();}
 
     // ------ Intake state machine ------
 
@@ -181,21 +194,24 @@ public class LaunchBoard
         {
             case INTAKE:
 
-                intake.setPower(-0.95);
+                intake.set(0.95);
+                transfer.set(0.05);
                 LaunchAdjustment(FlywheelMode.IDLE);
 
                 break;
 
             case OUTTAKE:
 
-                intake.setPower(0.95);
+                intake.set(-0.8);
+                transfer.set(-0.8);
                 LaunchAdjustment(FlywheelMode.IDLE);
 
                 break;
 
             case REV:
 
-                intake.setPower(0.05);
+                intake.set(0.05);
+                transfer.set(0.05);
 
                 if (camAdjustment)
                 {LaunchAdjustment(FlywheelMode.AUTOMATIC);}
@@ -208,7 +224,8 @@ public class LaunchBoard
                 // Wait for stopper to fully lift before starting transfer
                 if (stopperTimer.milliseconds() < 150) return;
 
-                intake.setPower(-0.9);
+                intake.set(0.95);
+                transfer.set(0.6);
 
                 if (camAdjustment)
                 {LaunchAdjustment(FlywheelMode.AUTOMATIC);}
@@ -219,7 +236,8 @@ public class LaunchBoard
             case IDLE:
             default:
 
-                intake.setPower(0);
+                intake.set(0);
+                transfer.set(0);
                 LaunchAdjustment(FlywheelMode.IDLE);
                 break;
         }

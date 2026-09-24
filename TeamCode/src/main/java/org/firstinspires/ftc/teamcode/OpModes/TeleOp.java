@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Mechanisms.LaunchBoard;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp_DECODE")
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp")
 public class TeleOp extends OpMode {
 
     private final double MOTOR_MULTIPLIER = 0.95;
@@ -28,7 +28,7 @@ public class TeleOp extends OpMode {
     private boolean confirmed = false;
 
     private int launchState = 0;
-    private double flywheelMultiplier = 300;
+    private double flywheelMultiplier = 475;
     private boolean autoAdjustment = false;
     private boolean robotCentricDrive = true;
     private boolean outtake = false;
@@ -68,7 +68,7 @@ public class TeleOp extends OpMode {
     @Override
     public void start()
     {
-        LaunchBoard.start();
+        //LaunchBoard.start();
         follower.startTeleopDrive(true);
     }
 
@@ -120,10 +120,10 @@ public class TeleOp extends OpMode {
 
         //Flywheel and angle adjustment
         if (gamepad1.dpadUpWasPressed())
-        {flywheelMultiplier += 25;}
+        {flywheelMultiplier += 12.5;}
 
         if (gamepad1.dpadDownWasPressed())
-        {flywheelMultiplier -= 25;}
+        {flywheelMultiplier -= 12.5;}
 
         //Functions that get called every loop with no input condition
         LaunchBoard.UpdateLaunch(autoAdjustment, flywheelMultiplier);
@@ -139,11 +139,11 @@ public class TeleOp extends OpMode {
         {telemetry.addData("FLYWHEEL MULTIPLIER", flywheelMultiplier);}
     }
 
-    @Override
+    /*@Override
     public void stop()
     {
         LaunchBoard.stop();
-    }
+    }*/
 
     // ------ state machines ------
 

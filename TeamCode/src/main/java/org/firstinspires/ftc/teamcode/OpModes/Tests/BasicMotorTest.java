@@ -14,8 +14,21 @@ import java.util.function.Supplier;
 @TeleOp(group = "tests basic")
 public class BasicMotorTest extends OpMode
 {
-    private final String[] MOTOR_NAMES = {"leftFlywheel", "rightFlywheel", "turret"}; // Names used in Control Hub config
-    private final Motor.GoBILDA[] MOTOR_TYPES = {Motor.GoBILDA.BARE, Motor.GoBILDA.BARE, Motor.GoBILDA.RPM_435};
+    private final String[] MOTOR_NAMES =
+    {
+            "flWheel",
+            "frWheel",
+            "blWheel",
+            "brWheel"
+    }; // Names used in Control Hub config
+
+    private final Motor.GoBILDA[] MOTOR_TYPES =
+    {
+            Motor.GoBILDA.RPM_312,
+            Motor.GoBILDA.RPM_312,
+            Motor.GoBILDA.RPM_312,
+            Motor.GoBILDA.RPM_312
+    };
 
     private MotorEx[] motors = new MotorEx[MOTOR_NAMES.length];
     // Automatically updates values based on current inputs
