@@ -36,11 +36,11 @@ class AutoStep
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "Autonomous")
 public class Autonomous extends OpMode
 {
-    private final double SHOOT_DELAY = 3000; // Wait for flywheel rev
-    private final double SHOOT_TIME = 3000; // Wait for shooting before starting path
+    private final double SHOOT_DELAY = 0; // Wait for flywheel rev
+    private final double SHOOT_TIME = 0; // Wait for shooting before starting path
     private final double INTAKE_SPEED = 0.5;
 
-    private final double FIELD_LENGTH = 142; // in pedroPathing coordinates
+    private final double FIELD_LENGTH = 144; // in pedroPathing coordinates
 
     LaunchBoard LaunchBoard = new LaunchBoard();
 
@@ -124,16 +124,16 @@ public class Autonomous extends OpMode
         {
             StartRoutine(startBottom);
 
-            AddRoutineStep(startBottom, () -> LaunchBoard.Rev(), 1,  SHOOT_DELAY, 0);
-            AddRoutineStep(leftWallBottom, () -> LaunchBoard.Shoot(), 1, SHOOT_TIME, 0);
+            LaunchBoard.Rev();
+            AddRoutineStep(leftWallBottom, () -> LaunchBoard.Shoot(), 1, SHOOT_TIME, SHOOT_DELAY);
             AddRoutineStep(loadingBottom, () -> LaunchBoard.Idle(), 1, 0 , 0);
         }
         else
         {
             StartRoutine(MirrorPose(startBottom, false));
 
-            AddRoutineStep(MirrorPose(startBottom, false), () -> LaunchBoard.Rev(), 1, SHOOT_DELAY, 0);
-            AddRoutineStep(goalTop, () -> LaunchBoard.Shoot(), 1, SHOOT_TIME, 0);
+            LaunchBoard.Rev();
+            AddRoutineStep(goalTop, () -> LaunchBoard.Shoot(), 1, SHOOT_TIME, SHOOT_DELAY);
             AddRoutineStep(loadingTop, () -> LaunchBoard.Idle(), 1, 0, 0);
         }
     }
@@ -145,10 +145,10 @@ public class Autonomous extends OpMode
         RunScheduler();
         LaunchBoard.UpdateLaunch(false, 475);
 
-        telemetry.addData("NEXT TARGET:", "%2.f, %2.f, %2.f",
-                follower.getPose().getX(),
-                follower.getPose().getY(),
-                follower.getPose().getHeading()
+        telemetry.addData("NEXT TARGET:", "%.2f, %.2f, %.2f",
+                follower.getClosestPose().getPose().getX(),
+                follower.getClosestPose().getPose().getY(),
+                follower.getClosestPose().getPose().getHeading()
         );
 
         if (opModeTimer.seconds() > 30) {requestOpModeStop();}

@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.Mechanisms;
 
 public class Extra
 {
+    public static double GRAV_ACCEL = 386.4;
+
     // Convert 0 - 360 degree range angles to -180 - 180
     public static double WrapAngle(double angle)
     {
