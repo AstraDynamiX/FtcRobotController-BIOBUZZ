@@ -15,7 +15,8 @@ public class AprilTagTrackingTest extends OpMode
     @Override
     public void init()
     {
-        LocalizationBoard.init(hardwareMap, 7);
+        LocalizationBoard.init(hardwareMap);
+        LocalizationBoard.SetAprilTagId(7);
     }
 
     @Override
@@ -27,7 +28,7 @@ public class AprilTagTrackingTest extends OpMode
     @Override
     public void loop()
     {
-        double[] tagDimensions = LocalizationBoard.GetAprilTag();
+        double[] tagDimensions = LocalizationBoard.GetAprilTagPosition();
 
         telemetry.addData("USING CAMERA", LocalizationBoard.IsUsingCamera());
         telemetry.addData("RANGE", tagDimensions[0]);

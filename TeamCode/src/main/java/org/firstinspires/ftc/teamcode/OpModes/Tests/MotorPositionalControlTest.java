@@ -61,7 +61,7 @@ public class MotorPositionalControlTest extends OpMode
 
         currentAngleTicks = motor.getCurrentPosition() / GEAR_RATIO;
         currentAngle = currentAngleTicks / TICKS_PER_REV * 2 * Math.PI;
-        LocalizationBoard.SetCameraOrientation(currentAngle);
+        LocalizationBoard.cameraPosition.yaw = currentAngle;
 
         // Control motor using joystick, where joystick points = where motor points
         // (release => motor keeps position)
@@ -69,7 +69,7 @@ public class MotorPositionalControlTest extends OpMode
         {desiredAngle = Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI/2;}
         else if (!joystickControl)
         {
-            bearing = LocalizationBoard.GetAprilTag("bearing");
+            bearing = LocalizationBoard.GetAprilTagPosition("bearing");
             desiredAngle = -bearing;
         }
 

@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.Mechanisms;
 
 import static java.lang.Math.sqrt;
 
+import com.pedropathing.follower.Follower;
+import com.pedropathing.ftc.localization.localizers.PinpointLocalizer;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -9,12 +12,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 public class LocalizationBoard
 {
-    private final double BEARING_OFFSET = 0;
-    private final double CALIBRATION_CONSTANT = 40 * sqrt(3.62);
+    public CameraPosition cameraPosition;
 
     private Limelight3A limelight;
     private GoBildaPinpointDriver pinpoint;
@@ -24,21 +26,24 @@ public class LocalizationBoard
     private double prevHeading = 0;
     private double prevTagX = 0;
     private double prevTagY = 0;
-
-    private double cameraOrientation = 0;
+    private boolean odometryAvailable = false;
     private boolean useCamera = false;
 
 
-    public void init(HardwareMap hwMap, int id)
+    public void init(HardwareMap hwMap)
     {
         limelight = hwMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(id);
+    }
 
-        pinpoint = hwMap.get(GoBildaPinpointDriver.class,"pinpoint");
-        pinpoint.setOffsets(1.22, -3.74, DistanceUnit.INCH);
-        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
-        pinpoint.resetPosAndIMU();
+    public void init(HardwareMap hwMap, Follower follower)
+    {
+        init(hwMap);
+
+        PinpointLocalizer localizer =
+                (PinpointLocalizer) follower.getPoseTracker().getLocalizer();
+        pinpoint = localizer.getPinpoint();
+
+        odometryAvailable = true;
     }
 
     public void start()
@@ -52,15 +57,16 @@ public class LocalizationBoard
         limelight.close();
     }
 
-    public double GetAprilTag(String dimension)
+    public double GetAprilTagPosition(String dimension)
     {
         useCamera = true;
         LLResult detection = null;
 
+        double tagX = 999999;
+        double tagY = 999999;
         double distance = 999999;
         double bearing = 999999;
 
-        pinpoint.update();
         Pose2D pos = pinpoint.getPosition();
         double curFieldX = pos.getX(DistanceUnit.INCH);
         double curFieldY = pos.getY(DistanceUnit.INCH);
@@ -77,17 +83,13 @@ public class LocalizationBoard
         // Use camera for positioning
         if (useCamera)
         {
-            double ta = detection.getTa();
-            distance = CALIBRATION_CONSTANT / sqrt(ta);
+            Pose3D tagPose = detection.getFiducialResults().get(0).getTargetPoseCameraSpace();
 
-            double tx = detection.getTx();
-            bearing = Math.toRadians(tx - BEARING_OFFSET) - cameraOrientation;
-
-            prevTagX = distance * Math.cos(bearing);
-            prevTagY = distance * Math.sin(bearing);
+            tagX = tagPose.getPosition().x;
+            tagY = tagPose.getPosition().y;
         }
         // Use odometry for positioning
-        /*else
+        else if (odometryAvailable)
         {
             // Calculate displacement in field plane first, then rotate in robot plane
             // so that rotations during movement don't mess up the values
@@ -105,15 +107,18 @@ public class LocalizationBoard
             double dtHeadingCos = Math.cos(dtHeading);
             double dtHeadingSin = Math.sin(dtHeading);
             // Tag coordinates rotated to match this frame's plane
-            double tagX = prevPlaneTagX * dtHeadingCos - prevPlaneTagY * dtHeadingSin;
-            double tagY = prevPlaneTagX * dtHeadingSin + prevPlaneTagY * dtHeadingCos;
+            tagX = prevPlaneTagX * dtHeadingCos - prevPlaneTagY * dtHeadingSin;
+            tagY = prevPlaneTagX * dtHeadingSin + prevPlaneTagY * dtHeadingCos;
+        }
 
+        if ((tagX + tagY) < 999999)
+        {
             distance = Math.hypot(tagY, tagX);
             bearing = Math.atan2(tagY, tagX);
 
             prevTagX = tagX;
             prevTagY = tagY;
-        }*/
+        }
 
         prevFieldX = curFieldX;
         prevFieldY = curFieldY;
@@ -128,20 +133,16 @@ public class LocalizationBoard
     }
 
     //Returns all dimensions in an array
-    public double[] GetAprilTag()
+    public double[] GetAprilTagPosition()
     {
         return new double[] {
-                GetAprilTag("range"),
-                GetAprilTag("bearing"),
+                GetAprilTagPosition("range"),
+                GetAprilTagPosition("bearing"),
         };
     }
 
-    // Set camera angle relative to IMU angle
-    public void SetCameraOrientation(double orientation)
-    {
-        cameraOrientation = orientation;
-    }
-
+    public void SetAprilTagId(int aprilTagId) {limelight.pipelineSwitch(aprilTagId);}
+    
     public boolean IsUsingCamera()
     {
         return useCamera;
