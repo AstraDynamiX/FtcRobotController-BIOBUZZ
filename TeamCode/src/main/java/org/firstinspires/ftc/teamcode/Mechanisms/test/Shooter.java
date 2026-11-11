@@ -11,18 +11,31 @@ public class Shooter extends SubsystemBase {
     private double polenPos; ///Todo: change
     private double nectarPos; ///Todo: change
     private double spinUpVel; ///Todo: change
+    private double targetVel;
+    private double velocityTolerance;
 
 
-    private MotorGroup flywheelMotor;
-    private ServoEx slot1Servo;
-    private ServoEx slot2Servo;
-    private ServoEx slot3Servo;
-    private ServoEx slot4Servo;
+    private final MotorGroup flywheelMotor;
+    private final ServoEx slot1Servo;
+    private final ServoEx slot2Servo;
+    private final ServoEx slot3Servo;
+    private final ServoEx slot4Servo;
     enum Ball_type{
         POLEN,
         NECTAR
     }
 
+    public Shooter(HardwareMap hardwareMap){
+        slot1Servo = new ServoEx(hardwareMap, "slot1");
+        slot2Servo = new ServoEx(hardwareMap, "slot2");
+        slot3Servo = new ServoEx(hardwareMap, "slot3");
+        slot4Servo = new ServoEx(hardwareMap, "slot4");
+
+        flywheelMotor = new MotorGroup(
+                new MotorEx(hardwareMap, "fly_left"),
+                new MotorEx(hardwareMap, "fly_right").setInverted(true)
+        );
+    }
 
     private void setType(ServoEx servo, Ball_type type){
         switch (type){
@@ -46,24 +59,25 @@ public class Shooter extends SubsystemBase {
     public boolean isSpunUp(double tolerance){
         return Math.abs(flywheelMotor.getVelocity() - spinUpVel) <= tolerance;
     }
+    public boolean isSpunUp(){
+        return Math.abs(flywheelMotor.getVelocity() - spinUpVel) <= velocityTolerance;
+    }
+
+    public void setFlywheelVelocity(double targetVelocity){
+        this.targetVel = targetVelocity;
+    }
+    public boolean isAtTargetVelocity(double tolerance){
+        return Math.abs(flywheelMotor.getVelocity() - spinUpVel) <= tolerance;
+    }
+    public boolean isAtTargetVelocity(){
+        return Math.abs(flywheelMotor.getVelocity() - spinUpVel) <= velocityTolerance;
+    }
 
     public void shoot() {
         ///Todo: create
     }
 
-    public void initShooter(HardwareMap hardwareMap){
-        slot1Servo = new ServoEx(hardwareMap, "slot1");
-        slot2Servo = new ServoEx(hardwareMap, "slot2");
-        slot3Servo = new ServoEx(hardwareMap, "slot3");
-        slot4Servo = new ServoEx(hardwareMap, "slot4");
-
-        flywheelMotor = new MotorGroup(
-                new MotorEx(hardwareMap, "fly_left"),
-                new MotorEx(hardwareMap, "fly_right")
-        );
-
-
-
+    public void initialize(HardwareMap hardwareMap){
         flywheelMotor.setRunMode(Motor.RunMode.VelocityControl);
 
         flywheelMotor.setVeloCoefficients(0.05, 0.01, 0.31); ///Todo: change
@@ -79,5 +93,9 @@ public class Shooter extends SubsystemBase {
 
         flywheelMotor.setFeedforwardCoefficients(0.92, 0.47, 0.3); ///Todo: change
         ffCoeffs = flywheelMotor.getFeedforwardCoefficients();
+    }
+
+    public void normal(){
+        flywheelMotor.set(targetVel);
     }
 }
