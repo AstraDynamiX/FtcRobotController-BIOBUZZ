@@ -20,7 +20,7 @@ public class Shooter extends SubsystemBase {
     private final ServoEx slot2Servo;
     private final ServoEx slot3Servo;
     private final ServoEx slot4Servo;
-    enum Ball_type{
+    public enum Ball_type{
         POLEN,
         NECTAR
     }
@@ -77,7 +77,7 @@ public class Shooter extends SubsystemBase {
         ///Todo: create
     }
 
-    public void initialize(HardwareMap hardwareMap){
+    public void initialize(){
         flywheelMotor.setRunMode(Motor.RunMode.VelocityControl);
 
         flywheelMotor.setVeloCoefficients(0.05, 0.01, 0.31); ///Todo: change
