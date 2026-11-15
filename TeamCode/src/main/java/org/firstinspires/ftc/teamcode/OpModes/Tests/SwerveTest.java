@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.OpModes.Tests;
 
-import static org.firstinspires.ftc.teamcode.Mechanisms.Extra.ComputeTargetAngle;
-import static org.firstinspires.ftc.teamcode.Mechanisms.Extra.WrapAngle;
+import static org.firstinspires.ftc.teamcode.Mechanisms.Helpers.Extra.ComputeTargetAngle;
+import static org.firstinspires.ftc.teamcode.Mechanisms.Helpers.Extra.WrapAngle;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;

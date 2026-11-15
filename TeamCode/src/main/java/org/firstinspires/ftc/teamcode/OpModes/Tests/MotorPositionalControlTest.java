@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.OpModes.Tests;
 
-import static org.firstinspires.ftc.teamcode.Mechanisms.Extra.ComputeTargetAngle;
+import static org.firstinspires.ftc.teamcode.Mechanisms.Helpers.Extra.ComputeTargetAngle;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -34,7 +34,7 @@ public class MotorPositionalControlTest extends OpMode
     @Override
     public void init()
     {
-        LocalizationBoard.init(hardwareMap, 7);
+        LocalizationBoard.init(hardwareMap);
 
         motor = new MotorEx(hardwareMap, "turret", Motor.GoBILDA.RPM_435);
         motor.setRunMode(MotorEx.RunMode.PositionControl);

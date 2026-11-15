@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.Mechanisms;
 
-import static org.firstinspires.ftc.teamcode.Mechanisms.Extra.WrapAngle;
+import static org.firstinspires.ftc.teamcode.Mechanisms.Helpers.Extra.WrapAngle;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
