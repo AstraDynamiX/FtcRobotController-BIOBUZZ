@@ -1,5 +1,11 @@
 package org.firstinspires.ftc.teamcode.Mechanisms.Helpers;
 
+import static org.firstinspires.ftc.teamcode.Mechanisms.Helpers.Rotations.getRotation;
+
+import android.icu.text.Transliterator;
+
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+
 public class CameraPosition
 {
     public double right, forward, up;
@@ -32,12 +38,7 @@ public class CameraPosition
 
     public Vector3 getPosition()
     {return new Vector3(right, forward, up);}
-    public Matrix3 getRotation()
-    {
-        return Rotations.aroundUpAxis(yaw)
-                .multiply(Rotations.aroundRightAxis(pitch))
-                .multiply(Rotations.aroundForwardAxis(roll));
-    }
+
 
     public Matrix3 getCameraRobotRotation()
     {
@@ -49,13 +50,23 @@ public class CameraPosition
                 {0, -1, 0}
         };
 
-        return getRotation().multiply(cameraAxes);
+        return getRotation(yaw, pitch, roll).multiply(cameraAxes);
     }
 
-    public Vector3 transform(Vector3 cameraPoint)
+    // In limelight camera space, x is right, y is down, z is forward/outward
+    public Vector3 fromLimelightPosition(Position limelightPoint)
+    {
+        return new Vector3(
+                limelightPoint.x,
+                limelightPoint.z,
+                -limelightPoint.y
+        );
+    }
+
+    public Vector3 getRobotTagPosition(Vector3 cameraPoint)
     {
         // Rotate into robot space
-        Vector3 rotated = getRotation().multiply(cameraPoint);
+        Vector3 rotated = getRotation(yaw, pitch, roll).multiply(cameraPoint);
 
         // Translate into robot space
         return rotated.add(getPosition());

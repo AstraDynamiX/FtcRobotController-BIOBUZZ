@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Mechanisms;
 
+import static org.firstinspires.ftc.teamcode.Mechanisms.Helpers.Rotations.getRotation;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ftc.localization.localizers.PinpointLocalizer;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
@@ -89,17 +91,14 @@ public class LocalizationBoard
         {
             Pose3D cameraTag = detection.getFiducialResults().get(0).getTargetPoseCameraSpace();
             Position cameraTagPosition = cameraTag.getPosition();
-            YawPitchRollAngles cameraTagRotation = cameraTag.getOrientation();
+            YawPitchRollAngles cameraTagOrientation = cameraTag.getOrientation();
 
-            // In limelight camera space, x is right, y is down, z is forward/outward
-            Vector3 robotTagPose = cameraPosition.transform(new Vector3(
-                            cameraTagPosition.x,
-                            cameraTagPosition.z,
-                            -cameraTagPosition.y
-                    ));
+            Matrix3 cameraTagRotation = getRotation(cameraTagOrientation.getYaw(), cameraTagOrientation.getPitch(), cameraTagOrientation.getRoll());
 
-            tagForward = robotTagPose.forward;
-            tagRight = robotTagPose.right;
+            Vector3 robotTagPosition = cameraPosition.getRobotTagPosition(cameraPosition.fromLimelightPosition(cameraTagPosition));
+
+            tagForward = robotTagPosition.forward;
+            tagRight = robotTagPosition.right;
 
             Matrix3 robotTagRotation = cameraPosition.getCameraRobotRotation().multiply(cameraTagRotation);
         }
